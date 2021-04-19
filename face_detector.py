@@ -163,7 +163,7 @@ def main():
 	filtered_dictionary = filter_by_keyword(img_dictionary,keyword)
 	end = time()
 	print('Acomplished in {}s. Keyword "{}"" found in images: {}'.format(end-start,keyword,filtered_dictionary.keys()))
-	for key in updated_dictionary:
+	for key in filtered_dictionary:
 		print('Analyzing image {}...'.format(key))
 		image = updated_dictionary[key]
 		print('Dictionary updated')
