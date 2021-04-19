@@ -165,7 +165,7 @@ def main():
 	print('Acomplished in {}s. Keyword "{}"" found in images: {}'.format(end-start,keyword,filtered_dictionary.keys()))
 	for key in filtered_dictionary:
 		print('Analyzing image {}...'.format(key))
-		image = updated_dictionary[key]
+		image = filtered_dictionary[key]
 		print('Dictionary updated')
 		image = delete_text(image)
 		print('Text deleted')
