@@ -1,9 +1,11 @@
 import os
-from time import time
-import pytesseract
-import cv2 #import OpevCV
+import pytesseract 
+import cv2 # import OpenCV
 from PIL import Image
-from math import ceil, floor, sqrt
+from math import ceil, floor, sqrt # import some math operations
+from time import time
+from zipfile import ZipFile
+
 
 def input_keyword():
 	'''Lets user input word to search for
@@ -51,7 +53,17 @@ def resize(images):
 	images = [image.resize((base_width,base_height)) for image in images]
 	return images
 
-def image_dictionary(folder):
+def zip_extract(zip_name):
+	'''Extract zip file
+	:type zip_name: str
+	:param: zip_name: zip file name
+
+	:return: None
+	'''
+	with ZipFile(zip_name, 'r') as zip:
+		 zip.extractall()
+
+def image_dictionary(directory):
 	'''Creates image dictionary using images in folder
 	:type folder: str
 	:param folder: path to folder containing images
@@ -60,8 +72,10 @@ def image_dictionary(folder):
 	:return: dictionary whose keys are image (relative) paths, and values are numpy array images
 	'''
 	image_dictionary = dict()
-	for image_name in os.listdir(folder):
-		image_path = os.path.join(folder,image_name)
+	for image_name in os.listdir(directory):
+		image_path = os.path.join(directory,image_name)
+		print(image_path)
+		input('Wait')
 		image = cv2.imread(image_path) # load image with opencv
 		image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY) # change mode to grayscale allows to capture more text	
 		image_dictionary[image_path] = image
@@ -151,29 +165,54 @@ def mosaic(images):
 		mosaic.paste(images[index],(x_position*tesserae_width,y_position*tesserae_height)) # second parameter specifies where to paste image (upper left coordinates) 
 	return mosaic
 
-def main():
+def main(zip_name):
+	'''Run the whole code
+	Extract zip file
+	:type zip_name: str
+	:param: zip_name: zip file name
+
+	:return: None
+	'''
+	print('-'*60)
 	keyword = input_keyword()
+	print('-'*60)
+	print('Extracting zip file ...')
+	start = time()
+	zip_extract(zip_name)
+	end = time()
+	print('Zip file extracted in {:.2f}s'.format(end-start))
+	### Create image dictionary
+	print('-'*60)
 	start = time()
 	print('Creating image dictionary...')
-	img_dictionary = image_dictionary('small_img')
+	directory = zip_name.split('.')[0]
+	img_dictionary = image_dictionary(directory)
 	end = time()
-	print('Image dictionary created in {}s'.format(end-start))
+	print('Image dictionary created in {:.2f}s'.format(end-start))
+	print('-'*60)
+	### Look for instances of keyword inside images 
 	start = time()
-	print('Looking for instances of keyword "{}" in images'.format(keyword))
+	print('Looking for instances of keyword "{}" in images...'.format(keyword))
 	filtered_dictionary = filter_by_keyword(img_dictionary,keyword)
 	end = time()
-	print('Acomplished in {}s. Keyword "{}"" found in images: {}'.format(end-start,keyword,filtered_dictionary.keys()))
-	for key in filtered_dictionary:
+	### Create string containing names of images containing keyword
+	sorted_keys = sorted(filtered_dictionary)
+	filtered_images = str()
+	for key in sorted_keys:
+		filtered_images = filtered_images + '\n' + key  	
+	print('Acomplished in {:.2f}s. Keyword "{}"" found in images: {}'.format(end-start,keyword,filtered_images))
+	print('-'*60)
+	### Face detection
+	for key in sorted_keys:
 		print('Analyzing image {}...'.format(key))
 		image = filtered_dictionary[key]
-		print('Dictionary updated')
 		image = delete_text(image)
-		print('Text deleted')
 		faces = detect_faces(image)
-		print('Faces detected')
-		mosaic(faces).show()
-		break
+		if len(faces) == 0:
+			print('Keyword "{}" found. However, no faces were detected.'.format(keyword))
+		else:
+			print('Keyword "{}" found.'.format(keyword,key))
+			mosaic(faces).show()
 
-main()
- 
-
+zip_name = 'small_img.zip'
+main(zip_name)
