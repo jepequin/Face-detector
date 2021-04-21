@@ -6,6 +6,7 @@ from math import ceil, floor, sqrt # import some math operations
 from time import time
 from zipfile import ZipFile
 
+ZIP_NAME = 'images.zip'
 
 def input_keyword():
 	'''Lets user input word to search for
@@ -53,14 +54,10 @@ def resize(images):
 	images = [image.resize((base_width,base_height)) for image in images]
 	return images
 
-def zip_extract(zip_name):
-	'''Extract zip file
-	:type zip_name: str
-	:param: zip_name: zip file name
-
-	:return: None
+def zip_extract():
+	'''Extract zip file from path given in ZIP_NAME
 	'''
-	with ZipFile(zip_name, 'r') as zip:
+	with ZipFile(ZIP_NAME, 'r') as zip:
 		 zip.extractall()
 
 def image_dictionary(directory):
@@ -74,8 +71,6 @@ def image_dictionary(directory):
 	image_dictionary = dict()
 	for image_name in os.listdir(directory):
 		image_path = os.path.join(directory,image_name)
-		print(image_path)
-		input('Wait')
 		image = cv2.imread(image_path) # load image with opencv
 		image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY) # change mode to grayscale allows to capture more text	
 		image_dictionary[image_path] = image
@@ -165,27 +160,22 @@ def mosaic(images):
 		mosaic.paste(images[index],(x_position*tesserae_width,y_position*tesserae_height)) # second parameter specifies where to paste image (upper left coordinates) 
 	return mosaic
 
-def main(zip_name):
+def main():
 	'''Run the whole code
-	Extract zip file
-	:type zip_name: str
-	:param: zip_name: zip file name
-
-	:return: None
 	'''
 	print('-'*60)
 	keyword = input_keyword()
 	print('-'*60)
 	print('Extracting zip file ...')
 	start = time()
-	zip_extract(zip_name)
+	zip_extract()
 	end = time()
 	print('Zip file extracted in {:.2f}s'.format(end-start))
 	### Create image dictionary
 	print('-'*60)
 	start = time()
 	print('Creating image dictionary...')
-	directory = zip_name.split('.')[0]
+	directory = ZIP_NAME.split('.')[0]
 	img_dictionary = image_dictionary(directory)
 	end = time()
 	print('Image dictionary created in {:.2f}s'.format(end-start))
@@ -214,5 +204,4 @@ def main(zip_name):
 			print('Keyword "{}" found.'.format(keyword,key))
 			mosaic(faces).show()
 
-zip_name = 'small_img.zip'
-main(zip_name)
+main()
